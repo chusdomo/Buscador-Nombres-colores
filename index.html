@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Nombres de Colores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        #colorInput {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        #colorInput:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, #1f5f8b);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #7f8c8d, #6c7b7b);
+            transform: translateY(-2px);
+        }
+        
+        .btn-export {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+        
+        .btn-export:hover {
+            background: linear-gradient(135deg, #229954, #1e7e34);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            padding: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .color-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .color-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .color-preview {
+            height: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .color-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .color-info {
+            padding: 20px;
+        }
+        
+        .color-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .color-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .color-detail {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .color-detail strong {
+            color: #2c3e50;
+        }
+        
+        .spanish-name {
+            background: linear-gradient(135deg, #e8f5e8, #d4f4d4);
+            border: 2px solid #27ae60;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #1e7e34;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #ffe6e6, #ffd4d4);
+            border: 2px solid #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            color: #c0392b;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #f39c12;
+            padding: 12px;
+            border-radius: 8px;
+            color: #d68910;
+            text-align: center;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .color-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Buscador de Nombres de Colores</h1>
+            <p>Encuentra nombres en español para tus códigos de color usando APIs reales</p>
+        </div>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label for="colorInput">Pega aquí tus códigos de color (formato JSON):</label>
+                <textarea id="colorInput" placeholder='Ejemplo:
+{"preview":"40E0D0","name":"Cian_Verdoso_Medio_Aqua_6","hex":"40E0D0","rgb":"64, 224, 208","ryb":"14,33,53","complRyb":"86,67,47","importance":77.87031577462675}
+{"preview":"00A693","name":"Oliva_Oscuro_Vibrante_3","hex":"00A693","rgb":"0, 166, 147","ryb":"0,34,66","complRyb":"100,66,34","importance":77.70868836173999}'></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="processColors()">🔍 Buscar Nombres (APIs Reales)</button>
+                <button class="btn btn-secondary" onclick="clearResults()">🗑️ Limpiar</button>
+                <button class="btn btn-export" onclick="exportResults()" disabled>📥 Exportar Resultados</button>
+            </div>
+            
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="status">
+                <p>👆 Pega tus códigos de color arriba y haz clic en "Buscar Nombres" para comenzar</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let processedColors = [];
+        let isProcessing = false;
+        
+        function updateProgress(current, total) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            if (total > 0) {
+                progressBar.style.display = 'block';
+                const percentage = (current / total) * 100;
+                progressFill.style.width = percentage + '%';
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+        
+        function updateStats(total, processed, found, errors) {
+            const statsHtml = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${total}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${processed}</div>
+                        <div class="stat-label">Procesados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${found}</div>
+                        <div class="stat-label">Encontrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${errors}</div>
+                        <div class="stat-label">Errores</div>
+                    </div>
+                </div>
+            `;
+            return statsHtml;
+        }
+        
+        async function processColors() {
+            if (isProcessing) return;
+            
+            const input = document.getElementById('colorInput').value.trim();
+            if (!input) {
+                alert('Por favor, introduce los códigos de color');
+                return;
+            }
+            
+            isProcessing = true;
+            document.querySelector('.btn-primary').disabled = true;
+            document.querySelector('.btn-export').disabled = true;
+            
+            const lines = input.split('\n').filter(line => line.trim());
+            const colors = [];
+            
+            // Parsear los colores
+            for (let line of lines) {
+                try {
+                    const colorData = JSON.parse(line.trim());
+                    if (colorData.hex) {
+                        colors.push(colorData);
+                    }
+                } catch (e) {
+                    console.error('Error parsing line:', line, e);
+                }
+            }
+            
+            if (colors.length === 0) {
+                alert('No se encontraron colores válidos en el formato JSON');
+                isProcessing = false;
+                document.querySelector('.btn-primary').disabled = false;
+                return;
+            }
+            
+            processedColors = [];
+            let processed = 0;
+            let found = 0;
+            let errors = 0;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = updateStats(colors.length, processed, found, errors) + '<div class="color-grid" id="colorGrid"></div>';
+            
+            const colorGrid = document.getElementById('colorGrid');
+            
+            // Procesar colores de uno en uno
+            for (let i = 0; i < colors.length; i++) {
+                const color = colors[i];
+                updateProgress(i + 1, colors.length);
+                
+                // Crear tarjeta de color
+                const colorCard = document.createElement('div');
+                colorCard.className = 'color-card';
+                colorCard.innerHTML = `
+                    <div class="color-preview" style="background-color: #${color.hex}"></div>
+                    <div class="color-info">
+                        <div class="color-name">${color.name}</div>
+                        <div class="color-details">
+                            <div class="color-detail"><strong>HEX:</strong> #${color.hex}</div>
+                            <div class="color-detail"><strong>RGB:</strong> ${color.rgb}</div>
+                        </div>
+                        <div class="loading" id="status-${i}">Buscando nombre en español...</div>
+                    </div>
+                `;
+                colorGrid.appendChild(colorCard);
+                
+                try {
+                    // Buscar nombre en español
+                    const spanishName = await searchColorName(color.hex);
+                    const statusDiv = document.getElementById(`status-${i}`);
+                    
+                    if (spanishName) {
+                        statusDiv.className = 'spanish-name';
+                        statusDiv.innerHTML = `🇪🇸 ${spanishName}`;
+                        found++;
+                        
+                        processedColors.push({
+                            ...color,
+                            spanishName: spanishName
+                        });
+                    } else {
+                        statusDiv.className = 'error';
+                        statusDiv.innerHTML = '❌ No se encontró nombre en español';
+                        errors++;
+                        
+                        processedColors.push({
+                            ...color,
+                            spanishName: null
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error searching for color:', color.hex, error);
+                    const statusDiv = document.getElementById(`status-${i}`);
+                    statusDiv.className = 'error';
+                    statusDiv.innerHTML = '❌ Error en la búsqueda';
+                    errors++;
+                    
+                    processedColors.push({
+                        ...color,
+                        spanishName: null
+                    });
+                }
+                
+                processed++;
+                
+                // Actualizar estadísticas
+                const statsDiv = resultsDiv.querySelector('.stats');
+                statsDiv.innerHTML = updateStats(colors.length, processed, found, errors).match(/<div class="stats">(.*?)<\/div>/s)[1];
+                
+                // Pequeña pausa para evitar ser bloqueado por las APIs
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            updateProgress(0, 0);
+            isProcessing = false;
+            document.querySelector('.btn-primary').disabled = false;
+            document.querySelector('.btn-export').disabled = false;
+        }
+        
+        async function searchColorName(hex) {
+            try {
+                // Intentar múltiples APIs para obtener nombres en español
+                const results = await Promise.allSettled([
+                    searchTheColorAPI(hex),
+                    searchColorPizzaAPI(hex),
+                    searchCSSColorsAPI(hex)
+                ]);
+                
+                // Procesar resultados y traducir a español
+                const names = results
+                    .filter(result => result.status === 'fulfilled' && result.value)
+                    .map(result => result.value);
+                
+                if (names.length > 0) {
+                    // Traducir el mejor nombre encontrado
+                    const bestName = names[0];
+                    const spanishName = await translateColorName(bestName);
+                    return spanishName || bestName;
+                }
+                
+                // Si no se encuentra, generar nombre aproximado
+                return generateApproximateName(hex);
+            } catch (error) {
+                console.error('Error in searchColorName:', error);
+                return generateApproximateName(hex);
+            }
+        }
+        
+        async function searchTheColorAPI(hex) {
+            try {
+                const response = await fetch(`https://www.thecolorapi.com/id?hex=${hex}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                return data.name?.value || null;
+            } catch (error) {
+                console.error('TheColorAPI error:', error);
+                return null;
+            }
+        }
+        
+        async function searchColorPizzaAPI(hex) {
+            try {
+                const response = await fetch(`https://api.color.pizza/v1/?values=${hex}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                return data.colors?.[0]?.name || null;
+            } catch (error) {
+                console.error('ColorPizza API error:', error);
+                return null;
+            }
+        }
+        
+        async function searchCSSColorsAPI(hex) {
+            try {
+                // Buscar el color CSS más cercano
+                const response = await fetch('https://www.csscolorsapi.com/api/colors', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                const targetColor = hexToRgb(hex);
+                
+                if (!targetColor) return null;
+                
+                // Encontrar el color más cercano
+                let closestColor = null;
+                let minDistance = Infinity;
+                
+                data.colors?.forEach(color => {
+                    const colorRgb = hexToRgb(color.hex.substring(1));
+                    if (colorRgb) {
+                        const distance = Math.sqrt(
+                            Math.pow(targetColor.r - colorRgb.r, 2) +
+                            Math.pow(targetColor.g - colorRgb.g, 2) +
+                            Math.pow(targetColor.b - colorRgb.b, 2)
+                        );
+                        
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestColor = color;
+                        }
+                    }
+                });
+                
+                return closestColor?.name || null;
+            } catch (error) {
+                console.error('CSS Colors API error:', error);
+                return null;
+            }
+        }
+        
+        function hexToRgb(hex) {
+            const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        async function translateColorName(englishName) {
+            // Diccionario de traducciones comunes de colores
+            const colorTranslations = {
+                // Colores básicos
+                'red': 'Rojo',
+                'green': 'Verde',
+                'blue': 'Azul',
+                'yellow': 'Amarillo',
+                'orange': 'Naranja',
+                'purple': 'Púrpura',
+                'pink': 'Rosa',
+                'brown': 'Marrón',
+                'black': 'Negro',
+                'white': 'Blanco',
+                'gray': 'Gris',
+                'grey': 'Gris',
+                
+                // Colores específicos
+                'turquoise': 'Turquesa',
+                'cyan': 'Cian',
+                'magenta': 'Magenta',
+                'lime': 'Lima',
+                'navy': 'Azul Marino',
+                'olive': 'Oliva',
+                'maroon': 'Granate',
+                'teal': 'Verde Azulado',
+                'aqua': 'Agua',
+                'fuchsia': 'Fucsia',
+                'silver': 'Plata',
+                'gold': 'Oro',
+                'coral': 'Coral',
+                'salmon': 'Salmón',
+                'khaki': 'Caqui',
+                'tan': 'Canela',
+                'beige': 'Beige',
+                'ivory': 'Marfil',
+                'lavender': 'Lavanda',
+                'plum': 'Ciruela',
+                'orchid': 'Orquídea',
+                'violet': 'Violeta',
+                'indigo': 'Índigo',
+                'crimson': 'Carmesí',
+                'scarlet': 'Escarlata',
+                'azure': 'Azul Celeste',
+                'chartreuse': 'Amarillo Verdoso',
+                'mint': 'Menta',
+                'peach': 'Durazno',
+                'apricot': 'Albaricoque',
+                'chocolate': 'Chocolate',
+                'coffee': 'Café',
+                'cream': 'Crema',
+                'honeydew': 'Melón',
+                'lemon': 'Limón',
+                'rose': 'Rosa',
+                'ruby': 'Rubí',
+                'emerald': 'Esmeralda',
+                'sapphire': 'Zafiro',
+                'amber': 'Ámbar',
+                'bronze': 'Bronce',
+                'copper': 'Cobre',
+                'steel': 'Acero',
+                'pewter': 'Peltre',
+                'slate': 'Pizarra',
+                'charcoal': 'Carbón',
+                'ash': 'Ceniza',
+                'smoke': 'Humo',
+                'fog': 'Niebla',
+                'cloud': 'Nube',
+                'snow': 'Nieve',
+                'pearl': 'Perla',
+                'bone': 'Hueso',
+                'eggshell': 'Cáscara de Huevo',
+                'vanilla': 'Vainilla',
+                'butter': 'Mantequilla',
+                'sand': 'Arena',
+                'clay': 'Arcilla',
+                'rust': 'Óxido',
+                'brick': 'Ladrillo',
+                'wine': 'Vino',
+                'burgundy': 'Burdeos',
+                'forest': 'Bosque',
+                'jungle': 'Selva',
+                'sage': 'Salvia',
+                'moss': 'Musgo',
+                'grass': 'Hierba',
+                'leaf': 'Hoja',
+                'pine': 'Pino',
+                'ocean': 'Océano',
+                'sea': 'Mar',
+                'sky': 'Cielo',
+                'royal': 'Real',
+                'electric': 'Eléctrico',
+                'neon': 'Neón',
+                'bright': 'Brillante',
+                'dark': 'Oscuro',
+                'light': 'Claro',
+                'pale': 'Pálido',
+                'deep': 'Profundo',
+                'vivid': 'Vívido',
+                'muted': 'Apagado',
+                'dusty': 'Polvoriento',
+                'faded': 'Desvanecido',
+                'bold': 'Audaz',
+                'soft': 'Suave',
+                'warm': 'Cálido',
+                'cool': 'Frío'
+            };
+            
+            if (!englishName) return null;
+            
+            const lowerName = englishName.toLowerCase();
+            
+            // Buscar traducción exacta
+            if (colorTranslations[lowerName]) {
+                return colorTranslations[lowerName];
+            }
+            
+            // Buscar por palabras clave
+            for (const [english, spanish] of Object.entries(colorTranslations)) {
+                if (lowerName.includes(english)) {
+                    return spanish + ' ' + englishName.replace(new RegExp(english, 'gi'), '').trim();
+                }
+            }
+            
+            // Si no se encuentra traducción, devolver el nombre original con formato
+            return englishName.charAt(0).toUpperCase() + englishName.slice(1);
+        }
+        
+        function generateApproximateName(hex) {
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            // Generar nombres aproximados basados en componentes RGB
+            if (r > 200 && g > 200 && b > 200) return 'Blanco Grisáceo';
+            if (r < 50 && g < 50 && b < 50) return 'Negro Grisáceo';
+            
+            // Determinar el color dominante
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const delta = max - min;
+            
+            if (delta < 30) {
+                // Color gris
+                if (max > 180) return 'Gris Claro';
+                if (max > 100) return 'Gris Medio';
+                return 'Gris Oscuro';
+            }
+            
+            // Determinar matiz principal
+            if (max === r) {
+                if (g > b) return g > 150 ? 'Amarillo Rojizo' : 'Rojo';
+                return b > 150 ? 'Rosa' : 'Rojo';
+            } else if (max === g) {
+                if (r > b) return r > 150 ? 'Amarillo Verdoso' : 'Verde';
+                return b > 150 ? 'Verde Azulado' : 'Verde';
+            } else {
+                if (r > g) return r > 150 ? 'Violeta' : 'Azul';
+                return g > 150 ? 'Azul Verdoso' : 'Azul';
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('colorInput').value = '';
+            document.getElementById('results').innerHTML = '<div class="status"><p>👆 Pega tus códigos de color arriba y haz clic en "Buscar Nombres" para comenzar</p></div>';
+            processedColors = [];
+            document.querySelector('.btn-export').disabled = true;
+        }
+        
+        function exportResults() {
+            if (processedColors.length === 0) {
+                alert('No hay resultados para exportar');
+                return;
+            }
+            
+            const csvContent = 'data:text/csv;charset=utf-8,';
+            let csv = 'Nombre Original,HEX,RGB,RYB,Importancia,Nombre en Español\n';
+            
+            processedColors.forEach(color => {
+                csv += `"${color.name}","${color.hex}","${color.rgb}","${color.ryb}","${color.importance}","${color.spanishName || 'No encontrado'}"\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent + csv);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', 'colores_con_nombres_espanol.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Ejemplo de datos al cargar
+        window.addEventListener('load', function() {
+            const exampleData = `{"preview":"40E0D0","name":"Cian_Verdoso_Medio_Aqua_6","hex":"40E0D0","rgb":"64, 224, 208","ryb":"14,33,53","complRyb":"86,67,47","importance":77.87031577462675}
+{"preview":"00A693","name":"Oliva_Oscuro_Vibrante_3","hex":"00A693","rgb":"0, 166, 147","ryb":"0,34,66","complRyb":"100,66,34","importance":77.70868836173999}`;
+            
+            document.getElementById('colorInput').value = exampleData;
+        });
+    </script>
+</body>
+</html>
